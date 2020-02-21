@@ -47,13 +47,13 @@ function getPlugins(isNotebook) {
             }),
             new HtmlWebpackPlugin({
                 template: 'src/datascience-ui/native-editor/index.html',
-                indexUrl: `${constants.ExtensionRootDir}/out/1`,
+                indexUrl: `${constants.ExtensionRootDir}/out/datascience-ui/notebook/1`,
                 chunks: ['monaco', 'commons', 'nativeEditor'],
                 filename: 'index.nativeEditor.html'
             }),
             new HtmlWebpackPlugin({
                 template: 'src/datascience-ui/history-react/index.html',
-                indexUrl: `${constants.ExtensionRootDir}/out/1`,
+                indexUrl: `${constants.ExtensionRootDir}/out/datascience-ui/notebook/1`,
                 chunks: ['monaco', 'commons', 'interactiveWindow'],
                 filename: 'index.interactiveWindow.html'
             })
