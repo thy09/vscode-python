@@ -550,8 +550,8 @@ export type FileSettings = {
 export interface IDataScienceExtraSettings extends IDataScienceSettings {
     extraSettings: {
         editor: {
-            cursor: string;
-            cursorBlink: string;
+            cursor?: 'line' | 'block' | 'underline' | 'line-thin' | 'block-outline' | 'underline-thin';
+            cursorBlink?: 'blink' | 'smooth' | 'phase' | 'expand' | 'solid';
             fontLigatures: boolean;
             autoClosingBrackets: string;
             autoClosingQuotes: string;
@@ -570,10 +570,10 @@ export interface IDataScienceExtraSettings extends IDataScienceSettings {
             comments: boolean;
             strings: boolean;
         };
-        acceptSuggestionOnEnter: boolean | 'on' | 'smart' | 'off';
+        acceptSuggestionOnEnter: undefined | 'on' | 'smart' | 'off';
         quickSuggestionsDelay: number;
         suggestOnTriggerCharacters: boolean;
-        tabCompletion: boolean | 'on' | 'off' | 'onlySnippets';
+        tabCompletion: undefined | 'on' | 'off' | 'onlySnippets';
         suggestLocalityBonus: boolean;
         suggestSelection: 'first' | 'recentlyUsed' | 'recentlyUsedByPrefix';
         wordBasedSuggestions: boolean;

@@ -35,7 +35,7 @@ interface IInteractiveCellBaseProps {
     maxTextSize?: number;
     showWatermark: boolean;
     monacoTheme: string | undefined;
-    editorOptions?: monacoEditor.editor.IEditorOptions;
+    editorOptions?: monacoEditor.editor.IStandaloneEditorConstructionOptions;
     editExecutionCount?: string;
     editorMeasureClassName?: string;
     font: IFont;

@@ -140,12 +140,39 @@ function convertToMonacoRange(range: vscodeLanguageClient.Range | undefined): mo
     }
 }
 
-function convertToVSCodeRange(range: monacoEditor.IRange | undefined): vscode.Range | undefined {
+function convertToVSCodeRange(
+    range:
+        | monacoEditor.IRange
+        | {
+              insert: monacoEditor.IRange;
+              replace: monacoEditor.IRange;
+          }
+        | undefined
+): vscode.Range | { inserting: vscode.Range; replacing: vscode.Range } | undefined {
     if (range) {
-        return new vscode.Range(
-            new vscode.Position(range.startLineNumber - 1, range.startColumn - 1),
-            new vscode.Position(range.endLineNumber - 1, range.endColumn - 1)
-        );
+        // tslint:disable-next-line: no-any
+        if ((range as any).insert) {
+            const ir = range as {
+                insert: monacoEditor.IRange;
+                replace: monacoEditor.IRange;
+            };
+            return {
+                inserting: new vscode.Range(
+                    new vscode.Position(ir.insert.startLineNumber - 1, ir.insert.startColumn - 1),
+                    new vscode.Position(ir.insert.endLineNumber - 1, ir.insert.endColumn - 1)
+                ),
+                replacing: new vscode.Range(
+                    new vscode.Position(ir.replace.startLineNumber - 1, ir.replace.startColumn - 1),
+                    new vscode.Position(ir.replace.endLineNumber - 1, ir.replace.endColumn - 1)
+                )
+            };
+        } else {
+            const r = range as monacoEditor.IRange;
+            return new vscode.Range(
+                new vscode.Position(r.startLineNumber - 1, r.startColumn - 1),
+                new vscode.Position(r.endLineNumber - 1, r.endColumn - 1)
+            );
+        }
     }
 }
 
@@ -186,7 +213,9 @@ export function convertToMonacoCompletionItem(
 
     // Make sure we have insert text, otherwise the monaco editor will crash on trying to hit tab or enter on the text
     if (!result.insertText && result.label) {
-        result.insertText = result.label;
+        result.insertText = (result.label as monacoEditor.languages.CompletionItemLabel).name
+            ? (result.label as monacoEditor.languages.CompletionItemLabel).name
+            : result.label.toString();
     }
 
     // tslint:disable-next-line: no-any

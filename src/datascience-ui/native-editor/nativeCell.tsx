@@ -40,7 +40,7 @@ interface INativeCellBaseProps {
     font: IFont;
     allowUndo: boolean;
     enableGather: boolean | undefined;
-    editorOptions: monacoEditor.editor.IEditorOptions;
+    editorOptions: monacoEditor.editor.IStandaloneEditorConstructionOptions;
     themeMatplotlibPlots: boolean | undefined;
     focusPending: number;
 }

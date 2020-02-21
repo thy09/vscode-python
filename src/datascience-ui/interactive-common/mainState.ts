@@ -56,7 +56,7 @@ export type IMainState = {
     baseTheme: string;
     monacoTheme?: string;
     knownDark: boolean;
-    editorOptions?: monacoEditor.editor.IEditorOptions;
+    editorOptions?: monacoEditor.editor.IStandaloneEditorConstructionOptions;
     currentExecutionCount: number;
     debugging: boolean;
     dirty?: boolean;

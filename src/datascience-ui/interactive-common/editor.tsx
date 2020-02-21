@@ -130,7 +130,7 @@ export class Editor extends React.Component<IEditorProps, IEditorState> {
             selectionHighlight: false,
             lineDecorationsWidth: 0,
             contextmenu: false,
-            matchBrackets: false,
+            matchBrackets: 'never',
             fontSize: this.props.font.size,
             fontFamily: this.props.font.family,
             ...this.props.editorOptions

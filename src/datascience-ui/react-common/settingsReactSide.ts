@@ -72,7 +72,9 @@ export function getDefaultSettings() {
 }
 
 //tslint:disable:no-any
-export function computeEditorOptions(settings: IDataScienceExtraSettings): monacoEditor.editor.IEditorOptions {
+export function computeEditorOptions(
+    settings: IDataScienceExtraSettings
+): monacoEditor.editor.IStandaloneEditorConstructionOptions {
     const intellisenseOptions = settings.intellisenseOptions;
     const extraSettings = settings.extraSettings;
     if (intellisenseOptions && extraSettings) {
