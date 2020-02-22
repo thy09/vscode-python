@@ -152,6 +152,10 @@ export class MonacoEditor extends React.Component<IMonacoEditorProps, IMonacoEdi
                 openerService.open = this.props.openLink;
             }
 
+            // Modify the suggest controller so it doesn't overflow the bottom of the editor
+            // note: this became necessary in monaco 0.20.0
+            this.adjustSuggestWidgetForOverflow(editor);
+
             // Save the editor and the model in our state.
             this.setState({ editor, model });
             if (this.props.theme) {
@@ -380,6 +384,20 @@ export class MonacoEditor extends React.Component<IMonacoEditorProps, IMonacoEdi
 
     public getVisibleLineCount(): number {
         return this.getVisibleLines().length;
+    }
+
+    private adjustSuggestWidgetForOverflow(editor: monacoEditor.editor.IStandaloneCodeEditor) {
+        const suggest = editor.getContribution('editor.contrib.suggestController') as any;
+        if (suggest && suggest.widget) {
+            // Modify the showSuggestions on the widget such that always prefers top (might have to compute this ourselves)
+            const widget = suggest.widget.getValue();
+            const oldSuggestions = widget.__proto__.showSuggestions;
+            // tslint:disable-next-line: no-function-expression
+            widget.showSuggestions = function() {
+                oldSuggestions.apply(widget, arguments);
+                widget.preferDocPositionTop = true;
+            };
+        }
     }
 
     private getCurrentVisibleLinePosOrIndex(pickResult: (pos: number, index: number) => number): number | undefined {
