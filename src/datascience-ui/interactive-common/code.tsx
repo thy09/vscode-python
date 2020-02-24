@@ -27,6 +27,7 @@ export interface ICodeProps {
     hasFocus: boolean;
     cursorPos: CursorPos;
     focusPending: number;
+    forceToBottom?: boolean;
     onCreated(code: string, modelId: string): void;
     onChange(changes: monacoEditor.editor.IModelContentChange[], modelId: string): void;
     openLink(uri: monacoEditor.Uri): void;
@@ -84,6 +85,7 @@ export class Code extends React.Component<ICodeProps, ICodeState> {
                     showLineNumbers={this.props.showLineNumbers}
                     useQuickEdit={this.props.useQuickEdit}
                     font={this.props.font}
+                    forceToBottom={this.props.forceToBottom}
                 />
                 <div className={waterMarkClass} role="textbox" onClick={this.clickWatermark}>
                     {this.getWatermarkString()}

@@ -295,6 +295,7 @@ export class InteractiveCell extends React.Component<IInteractiveCellProps> {
                     showLineNumbers={this.props.cellVM.showLineNumbers}
                     font={this.props.font}
                     focusPending={this.props.focusPending}
+                    forceToBottom={this.props.cellVM.cell.id === Identifiers.EditCellId}
                 />
             );
         }

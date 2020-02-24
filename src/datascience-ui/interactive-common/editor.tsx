@@ -27,6 +27,7 @@ export interface IEditorProps {
     font: IFont;
     hasFocus: boolean;
     cursorPos: CursorPos;
+    forceToBottom?: boolean;
     onCreated(code: string, modelId: string): void;
     onChange(changes: monacoEditor.editor.IModelContentChange[], model: monacoEditor.editor.ITextModel): void;
     openLink(uri: monacoEditor.Uri): void;
@@ -148,6 +149,7 @@ export class Editor extends React.Component<IEditorProps, IEditorState> {
                 options={options}
                 openLink={this.props.openLink}
                 ref={this.monacoRef}
+                forcedToBottom={this.props.forceToBottom}
             />
         );
     };

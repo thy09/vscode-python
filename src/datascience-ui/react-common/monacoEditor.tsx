@@ -45,6 +45,7 @@ export interface IMonacoEditorProps {
     testMode?: boolean;
     forceBackground?: string;
     measureWidthClassName?: string;
+    forcedToBottom?: boolean;
     editorMounted(editor: monacoEditor.editor.IStandaloneCodeEditor): void;
     openLink(uri: monacoEditor.Uri): void;
 }
@@ -154,7 +155,7 @@ export class MonacoEditor extends React.Component<IMonacoEditorProps, IMonacoEdi
 
             // Modify the suggest controller so it doesn't overflow the bottom of the editor
             // note: this became necessary in monaco 0.20.0
-            this.adjustSuggestWidgetForOverflow(editor);
+            this.adjustWidgetsForOverflow(editor);
 
             // Save the editor and the model in our state.
             this.setState({ editor, model });
@@ -386,17 +387,69 @@ export class MonacoEditor extends React.Component<IMonacoEditorProps, IMonacoEdi
         return this.getVisibleLines().length;
     }
 
-    private adjustSuggestWidgetForOverflow(editor: monacoEditor.editor.IStandaloneCodeEditor) {
+    private adjustWidgetsForOverflow(editor: monacoEditor.editor.IStandaloneCodeEditor) {
+        // tslint:disable-next-line: no-any
         const suggest = editor.getContribution('editor.contrib.suggestController') as any;
         if (suggest && suggest.widget) {
-            // Modify the showSuggestions on the widget such that always prefers top (might have to compute this ourselves)
+            // Modify the showSuggestions on the widget such that prefers top if at the bottom of the screen
             const widget = suggest.widget.getValue();
             const oldSuggestions = widget.__proto__.showSuggestions;
+            // tslint:disable-next-line: no-this-assignment
+            const _this = this;
             // tslint:disable-next-line: no-function-expression
             widget.showSuggestions = function() {
                 oldSuggestions.apply(widget, arguments);
-                widget.preferDocPositionTop = true;
+                // Compute where the widget will be relative to the entire window
+                if (_this.widgetParent) {
+                    const lineHeight = editor.getOption(monacoEditor.editor.EditorOption.suggestLineHeight) * 12;
+                    const top = _this.widgetParent.offsetTop;
+                    widget.preferDocPositionTop = top + lineHeight > window.innerHeight;
+                } else {
+                    widget.preferDocPositionTop = true;
+                }
             };
+
+            // After the widget is added to the view, modify the widget wrapper to not allow negative top
+            // values.
+            // tslint:disable-next-line: no-any
+            const view = (editor as any)._modelData.view;
+            if (view && view.contentWidgets && view.contentWidgets._widgets) {
+                const widgetWrapper = view.contentWidgets._widgets['editor.widget.suggestWidget'];
+
+                // Modify the layoutBoxInPage on the widget so that it doesn't take into account the
+                // padding if the aboveTop is negative
+                const oldLayout = widgetWrapper.__proto__._layoutBoxInPage;
+                // tslint:disable-next-line: no-function-expression
+                widgetWrapper._layoutBoxInPage = function() {
+                    const result = oldLayout.apply(widgetWrapper, arguments);
+                    // tslint:disable-next-line: use-named-parameter
+                    const trueAbove = arguments[0].top - arguments[3];
+                    return { ...result, aboveTop: trueAbove };
+                };
+            }
+        }
+
+        // For the hover widget we have to prevent overflow because we can't force it in the correct direction.
+        // To do so, we have to change the wrapped content widget to not allow it but only after it is created.
+        // tslint:disable-next-line: no-any
+        const hover = editor.getContribution('editor.contrib.hover') as any;
+        if (hover && hover.contentWidget && hover.glyphWidget && this.props.forcedToBottom) {
+            const contentWidget = hover.contentWidget;
+            contentWidget.allowEditorOverflow = false;
+            const hoverWidget = hover.glyphWidget;
+            hoverWidget.allowEditorOverflow = false;
+            // tslint:disable-next-line: no-any
+            const view = (editor as any)._modelData.view;
+            if (view && view.contentWidgets && view.contentWidgets._widgets) {
+                const contentWrapper = view.contentWidgets._widgets['editor.contrib.modesContentHoverWidget'];
+                if (contentWrapper) {
+                    contentWrapper.allowEditorOverflow = false;
+                }
+                const glyphWrapper = view.contentWidgets._widgets['editor.contrib.modesGlyphHoverWidget'];
+                if (glyphWrapper) {
+                    glyphWrapper.allowEditorOverflow = false;
+                }
+            }
         }
     }
 
