@@ -236,8 +236,16 @@ export class JupyterSessionManager implements IJupyterSessionManager {
         let cookieString;
         let allowUnauthorized;
 
-        // If no token is specified prompt for a password
-        if (connInfo.token === '' || connInfo.token === 'null') {
+        // If authorization header is provided, use that (and make sure token is empty)
+        if (connInfo.authorizationHeader) {
+            // The authorization header should evaluate to a JSON object
+            serverSettings = { ...serverSettings, token: '' };
+            requestInit = {
+                ...requestInit,
+                headers: { ...connInfo.authorizationHeader, 'Content-type': 'application-json' }
+            };
+        } else if (connInfo.token === '' || connInfo.token === 'null') {
+            // If no token is specified prompt for a password
             if (this.failOnPassword) {
                 throw new Error('Password request not allowed.');
             }

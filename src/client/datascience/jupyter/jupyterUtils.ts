@@ -41,6 +41,8 @@ export function createRemoteConnectionInfo(uri: string, settings: IDataScienceSe
 
     const baseUrl = `${url.protocol}//${url.host}${url.pathname}`;
     const token = `${url.searchParams.get('token')}`;
+    const authorization = `${url.searchParams.get('authorization')}`;
+    const authorizationObject = authorization && authorization !== 'null' ? JSON.parse(authorization) : undefined;
 
     return {
         type: 'jupyter',
@@ -55,6 +57,7 @@ export function createRemoteConnectionInfo(uri: string, settings: IDataScienceSe
         disconnected: (_l) => {
             return { dispose: noop };
         },
-        dispose: noop
+        dispose: noop,
+        authorizationHeader: authorizationObject
     };
 }

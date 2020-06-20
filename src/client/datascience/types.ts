@@ -15,6 +15,7 @@ import {
     Disposable,
     Event,
     LanguageConfiguration,
+    QuickPickItem,
     Range,
     TextDocument,
     TextEditor,
@@ -27,6 +28,7 @@ import { ServerStatus } from '../../datascience-ui/interactive-common/mainState'
 import { ICommandManager, IDebugService } from '../common/application/types';
 import { ExecutionResult, ObservableExecutionResult, SpawnOptions } from '../common/process/types';
 import { IAsyncDisposable, IDataScienceSettings, IDisposable, Resource } from '../common/types';
+import { IMultiStepInput, InputStep } from '../common/utils/multiStepInput';
 import { StopWatch } from '../common/utils/stopWatch';
 import { PythonInterpreter } from '../pythonEnvironments/info';
 import { JupyterCommands } from './constants';
@@ -73,6 +75,8 @@ export interface IJupyterConnection extends Disposable {
     readonly hostName: string;
     localProcExitCode: number | undefined;
     allowUnauthorized?: boolean;
+    // tslint:disable-next-line: no-any
+    authorizationHeader?: any; // Snould be a json object
 }
 
 export type INotebookProviderConnection = IRawConnection | IJupyterConnection;
@@ -1228,4 +1232,27 @@ export interface IJupyterDebugService extends IDebugService {
      * Stop debugging
      */
     stop(): void;
+}
+
+export interface IJupyterServerUri {
+    baseUrl: string;
+    // tslint:disable-next-line: no-any
+    authorizationHeader: any; // JSON object for authorization header.
+}
+
+export interface IJupyterUriQuickPicker {
+    getQuickPickEntryItems(): QuickPickItem[];
+    handleNextSteps(
+        item: QuickPickItem,
+        completion: (uri: IJupyterServerUri | undefined) => void,
+        input: IMultiStepInput<{}>,
+        state: {}
+    ): Promise<InputStep<{}> | void>;
+}
+
+export const IJupyterUriQuickPickerRegistration = Symbol('IJupyterUriQuickPickerRegistration');
+
+export interface IJupyterUriQuickPickerRegistration {
+    readonly pickers: ReadonlyArray<IJupyterUriQuickPicker>;
+    registerPicker(picker: IJupyterUriQuickPicker): void;
 }

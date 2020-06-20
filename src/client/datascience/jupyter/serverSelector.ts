@@ -18,11 +18,13 @@ import {
 import { captureTelemetry } from '../../telemetry';
 import { getSavedUriList } from '../common';
 import { Settings, Telemetry } from '../constants';
+import { IJupyterServerUri, IJupyterUriQuickPicker, IJupyterUriQuickPickerRegistration } from '../types';
 
 const defaultUri = 'https://hostname:8080/?token=849d61a414abafab97bc4aab1f3547755ddc232c2b8cb7fe';
 
 interface ISelectUriQuickPickItem extends QuickPickItem {
     newChoice: boolean;
+    picker?: IJupyterUriQuickPicker;
 }
 
 @injectable()
@@ -35,7 +37,9 @@ export class JupyterServerSelector {
         @inject(IClipboard) private readonly clipboard: IClipboard,
         @inject(IMultiStepInputFactory) private readonly multiStepFactory: IMultiStepInputFactory,
         @inject(IConfigurationService) private configuration: IConfigurationService,
-        @inject(ICommandManager) private cmdManager: ICommandManager
+        @inject(ICommandManager) private cmdManager: ICommandManager,
+        @inject(IJupyterUriQuickPickerRegistration)
+        private extraUriPickers: IJupyterUriQuickPickerRegistration
     ) {}
 
     @captureTelemetry(Telemetry.SelectJupyterURI)
@@ -60,12 +64,26 @@ export class JupyterServerSelector {
         });
         if (item.label === this.localLabel) {
             await this.setJupyterURIToLocal();
-        } else if (!item.newChoice) {
+        } else if (!item.newChoice && !item.picker) {
             await this.setJupyterURIToRemote(item.label);
-        } else {
+        } else if (!item.picker) {
             return this.selectRemoteURI.bind(this);
+        } else {
+            return item.picker.handleNextSteps.bind(item.picker, item, this.handleProviderQuickPick.bind(this));
         }
     }
+
+    private async handleProviderQuickPick(result: IJupyterServerUri | undefined) {
+        if (result) {
+            const uri = this.generateUriFromRemoteProvider(result);
+            await this.setJupyterURIToRemote(uri);
+        }
+    }
+
+    private generateUriFromRemoteProvider(result: IJupyterServerUri) {
+        return `${result.baseUrl}/?authorization=${encodeURI(JSON.stringify(result.authorizationHeader))}`;
+    }
+
     private async selectRemoteURI(input: IMultiStepInput<{}>, _state: {}): Promise<InputStep<{}> | void> {
         let initialValue = defaultUri;
         try {
@@ -139,12 +157,23 @@ export class JupyterServerSelector {
     };
 
     private getUriPickList(allowLocal: boolean): ISelectUriQuickPickItem[] {
+        // Ask our providers to stick on items
+        let pickerItems: ISelectUriQuickPickItem[] = [];
+        this.extraUriPickers.pickers.forEach((p) => {
+            const newPickerItems = p.getQuickPickEntryItems().map((i) => {
+                return { ...i, newChoice: false, picker: p };
+            });
+            pickerItems = pickerItems.concat(newPickerItems);
+        });
+
         // Always have 'local' and 'add new'
-        const items: ISelectUriQuickPickItem[] = [];
+        let items: ISelectUriQuickPickItem[] = [];
         if (allowLocal) {
             items.push({ label: this.localLabel, detail: DataScience.jupyterSelectURILocalDetail(), newChoice: false });
+            items = items.concat(pickerItems);
             items.push({ label: this.newLabel, detail: DataScience.jupyterSelectURINewDetail(), newChoice: true });
         } else {
+            items = items.concat(pickerItems);
             items.push({
                 label: this.remoteLabel,
                 detail: DataScience.jupyterSelectURIRemoteDetail(),
