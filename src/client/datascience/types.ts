@@ -1236,6 +1236,7 @@ export interface IJupyterDebugService extends IDebugService {
 
 export interface IJupyterServerUri {
     baseUrl: string;
+    token: string;
     // tslint:disable-next-line: no-any
     authorizationHeader: any; // JSON object for authorization header.
 }

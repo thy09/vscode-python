@@ -81,7 +81,9 @@ export class JupyterServerSelector {
     }
 
     private generateUriFromRemoteProvider(result: IJupyterServerUri) {
-        return `${result.baseUrl}/?authorization=${encodeURI(JSON.stringify(result.authorizationHeader))}`;
+        return `${result.baseUrl}/?token=${result.token}&authorization=${encodeURI(
+            JSON.stringify(result.authorizationHeader)
+        )}`;
     }
 
     private async selectRemoteURI(input: IMultiStepInput<{}>, _state: {}): Promise<InputStep<{}> | void> {

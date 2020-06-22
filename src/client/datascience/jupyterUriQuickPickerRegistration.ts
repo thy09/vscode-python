@@ -33,7 +33,7 @@ class TestJupyterRemoteServerProvider implements IJupyterUriQuickPicker {
         });
         if (result && result.label === 'rchiodocom2') {
             try {
-                const headerResults = createDeferred<{}>();
+                const headerResults = createDeferred<IJupyterServerUri>();
                 exec(
                     'az account get-access-token',
                     {
@@ -47,17 +47,17 @@ class TestJupyterRemoteServerProvider implements IJupyterUriQuickPicker {
                         // some other stuff
                         if (stdout) {
                             const output = JSON.parse(stdout.toString());
-                            headerResults.resolve({ Authorization: `Bearer ${output.accessToken}` });
+                            headerResults.resolve({
+                                baseUrl: 'https://rchiodocom2.westus.instances.azureml.net',
+                                token: output.accessToken,
+                                authorizationHeader: { Authorization: `Bearer ${output.accessToken}` }
+                            });
                         } else {
                             headerResults.reject('Unable to get az token');
                         }
                     }
                 );
-                const tokenResults = await headerResults.promise;
-                const uri: IJupyterServerUri = {
-                    baseUrl: 'https://rchiodocom2.westus.instances.azureml.net',
-                    authorizationHeader: tokenResults
-                };
+                const uri = await headerResults.promise;
                 completion(uri);
             } catch {
                 noop();
