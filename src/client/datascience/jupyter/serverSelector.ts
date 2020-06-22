@@ -17,8 +17,8 @@ import {
 } from '../../common/utils/multiStepInput';
 import { captureTelemetry } from '../../telemetry';
 import { getSavedUriList } from '../common';
-import { Settings, Telemetry } from '../constants';
-import { IJupyterServerUri, IJupyterUriQuickPicker, IJupyterUriQuickPickerRegistration } from '../types';
+import { Identifiers, Settings, Telemetry } from '../constants';
+import { IJupyterUriQuickPicker, IJupyterUriQuickPickerRegistration, JupyterServerUriHandle } from '../types';
 
 const defaultUri = 'https://hostname:8080/?token=849d61a414abafab97bc4aab1f3547755ddc232c2b8cb7fe';
 
@@ -69,21 +69,26 @@ export class JupyterServerSelector {
         } else if (!item.picker) {
             return this.selectRemoteURI.bind(this);
         } else {
-            return item.picker.handleNextSteps.bind(item.picker, item, this.handleProviderQuickPick.bind(this));
+            return item.picker.handleNextSteps.bind(
+                item.picker,
+                item,
+                this.handleProviderQuickPick.bind(this, item.picker.id)
+            );
         }
     }
 
-    private async handleProviderQuickPick(result: IJupyterServerUri | undefined) {
+    private async handleProviderQuickPick(id: string, result: JupyterServerUriHandle | undefined) {
         if (result) {
-            const uri = this.generateUriFromRemoteProvider(result);
+            const uri = this.generateUriFromRemoteProvider(id, result);
             await this.setJupyterURIToRemote(uri);
         }
     }
 
-    private generateUriFromRemoteProvider(result: IJupyterServerUri) {
-        return `${result.baseUrl}/?token=${result.token}&authorization=${encodeURI(
-            JSON.stringify(result.authorizationHeader)
-        )}`;
+    private generateUriFromRemoteProvider(id: string, result: JupyterServerUriHandle) {
+        // tslint:disable-next-line: no-http-string
+        return `${Identifiers.REMOTE_URI}?${Identifiers.REMOTE_URI_ID_PARAM}=${id}&${
+            Identifiers.REMOTE_URI_HANDLE_PARAM
+        }=${encodeURI(result)}`;
     }
 
     private async selectRemoteURI(input: IMultiStepInput<{}>, _state: {}): Promise<InputStep<{}> | void> {

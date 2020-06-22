@@ -1241,14 +1241,18 @@ export interface IJupyterServerUri {
     authorizationHeader: any; // JSON object for authorization header.
 }
 
+export type JupyterServerUriHandle = string;
+
 export interface IJupyterUriQuickPicker {
+    id: string; // Should be a unique string (like a guid)
     getQuickPickEntryItems(): QuickPickItem[];
     handleNextSteps(
         item: QuickPickItem,
-        completion: (uri: IJupyterServerUri | undefined) => void,
+        completion: (uriHandle: JupyterServerUriHandle | undefined) => void,
         input: IMultiStepInput<{}>,
         state: {}
     ): Promise<InputStep<{}> | void>;
+    getServerUri(handle: JupyterServerUriHandle): Promise<IJupyterServerUri>;
 }
 
 export const IJupyterUriQuickPickerRegistration = Symbol('IJupyterUriQuickPickerRegistration');
@@ -1256,4 +1260,5 @@ export const IJupyterUriQuickPickerRegistration = Symbol('IJupyterUriQuickPicker
 export interface IJupyterUriQuickPickerRegistration {
     readonly pickers: ReadonlyArray<IJupyterUriQuickPicker>;
     registerPicker(picker: IJupyterUriQuickPicker): void;
+    getJupyterServerUri(id: string, handle: JupyterServerUriHandle): Promise<IJupyterServerUri>;
 }

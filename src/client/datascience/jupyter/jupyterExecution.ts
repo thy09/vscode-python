@@ -25,6 +25,7 @@ import {
     IJupyterExecution,
     IJupyterSessionManagerFactory,
     IJupyterSubCommandExecutionService,
+    IJupyterUriQuickPickerRegistration,
     INotebookServer,
     INotebookServerLaunchInfo,
     INotebookServerOptions
@@ -42,6 +43,7 @@ export class JupyterExecutionBase implements IJupyterExecution {
     private startedEmitter: EventEmitter<INotebookServerOptions> = new EventEmitter<INotebookServerOptions>();
     private disposed: boolean = false;
     private readonly jupyterInterpreterService: IJupyterSubCommandExecutionService;
+    private readonly jupyterPickerRegistration: IJupyterUriQuickPickerRegistration;
 
     constructor(
         _liveShare: ILiveShareApi,
@@ -57,6 +59,9 @@ export class JupyterExecutionBase implements IJupyterExecution {
     ) {
         this.jupyterInterpreterService = serviceContainer.get<IJupyterSubCommandExecutionService>(
             IJupyterSubCommandExecutionService
+        );
+        this.jupyterPickerRegistration = serviceContainer.get<IJupyterUriQuickPickerRegistration>(
+            IJupyterUriQuickPickerRegistration
         );
         this.disposableRegistry.push(this.interpreterService.onDidChangeInterpreter(() => this.onSettingsChanged()));
         this.disposableRegistry.push(this);
@@ -363,7 +368,11 @@ export class JupyterExecutionBase implements IJupyterExecution {
             }
         } else {
             // If we have a URI spec up a connection info for it
-            return createRemoteConnectionInfo(options.uri, this.configuration.getSettings(undefined).datascience);
+            return createRemoteConnectionInfo(
+                options.uri,
+                this.jupyterPickerRegistration,
+                this.configuration.getSettings(undefined).datascience
+            );
         }
     }
 

@@ -10,8 +10,9 @@ import { IWorkspaceService } from '../../common/application/types';
 import { IDataScienceSettings } from '../../common/types';
 import { noop } from '../../common/utils/misc';
 import { SystemVariables } from '../../common/variables/systemVariables';
+import { Identifiers } from '../constants';
 import { getJupyterConnectionDisplayName } from '../jupyter/jupyterConnection';
-import { IJupyterConnection } from '../types';
+import { IJupyterConnection, IJupyterUriQuickPickerRegistration } from '../types';
 
 export function expandWorkingDir(
     workingDir: string | undefined,
@@ -27,7 +28,11 @@ export function expandWorkingDir(
     return path.dirname(launchingFile);
 }
 
-export function createRemoteConnectionInfo(uri: string, settings: IDataScienceSettings): IJupyterConnection {
+export async function createRemoteConnectionInfo(
+    uri: string,
+    pickerRegistration: IJupyterUriQuickPickerRegistration,
+    settings: IDataScienceSettings
+): Promise<IJupyterConnection> {
     let url: URL;
     try {
         url = new URL(uri);
@@ -39,17 +44,19 @@ export function createRemoteConnectionInfo(uri: string, settings: IDataScienceSe
         ? settings.allowUnauthorizedRemoteConnection
         : false;
 
-    const baseUrl = `${url.protocol}//${url.host}${url.pathname}`;
-    const token = `${url.searchParams.get('token')}`;
-    const authorization = `${url.searchParams.get('authorization')}`;
-    const authorizationObject = authorization && authorization !== 'null' ? JSON.parse(authorization) : undefined;
+    const id = url.searchParams.get(Identifiers.REMOTE_URI_ID_PARAM);
+    const uriHandle = url.searchParams.get(Identifiers.REMOTE_URI_HANDLE_PARAM);
+    const serverUri = id && uriHandle ? await pickerRegistration.getJupyterServerUri(id, uriHandle) : undefined;
+    const baseUrl = serverUri ? serverUri.baseUrl : `${url.protocol}//${url.host}${url.pathname}`;
+    const token = serverUri ? serverUri.token : `${url.searchParams.get('token')}`;
+    const hostName = serverUri ? new URL(serverUri.baseUrl).hostname : url.hostname;
 
     return {
         type: 'jupyter',
         allowUnauthorized,
         baseUrl,
         token,
-        hostName: url.hostname,
+        hostName,
         localLaunch: false,
         localProcExitCode: undefined,
         valid: true,
@@ -58,6 +65,6 @@ export function createRemoteConnectionInfo(uri: string, settings: IDataScienceSe
             return { dispose: noop };
         },
         dispose: noop,
-        authorizationHeader: authorizationObject
+        authorizationHeader: serverUri ? serverUri.authorizationHeader : undefined
     };
 }
