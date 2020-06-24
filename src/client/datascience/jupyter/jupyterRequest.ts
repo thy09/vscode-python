@@ -14,6 +14,7 @@ export function createAuthorizingRequest(authorizationHeader: any) {
             const origHeaders = (this as any).headers as nodeFetch.Headers;
             const keys = Object.keys(authorizationHeader);
             keys.forEach((k) => origHeaders.append(k, authorizationHeader[k].toString()));
+            origHeaders.append('Content-Type', 'application/json');
 
             // Rewrite the 'append' method for the headers to disallow 'authorization' after this point
             const origAppend = origHeaders.append.bind(origHeaders);

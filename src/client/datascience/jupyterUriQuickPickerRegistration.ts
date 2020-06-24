@@ -65,7 +65,7 @@ class TestJupyterRemoteServerProvider implements IJupyterUriQuickPicker {
                     const output = JSON.parse(stdout.toString());
                     headerResults.resolve({
                         baseUrl: 'https://rchiodocom2.westus.instances.azureml.net',
-                        token: output.accessToken,
+                        token: '', //output.accessToken,
                         authorizationHeader: { Authorization: `Bearer ${output.accessToken}` }
                     });
                 } else {

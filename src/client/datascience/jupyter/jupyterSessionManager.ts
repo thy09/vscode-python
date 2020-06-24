@@ -246,7 +246,7 @@ export class JupyterSessionManager implements IJupyterSessionManager {
         }
 
         // If no token is specified prompt for a password
-        if (connInfo.token === '' || connInfo.token === 'null') {
+        if ((connInfo.token === '' || connInfo.token === 'null') && !connInfo.authorizationHeader) {
             if (this.failOnPassword) {
                 throw new Error('Password request not allowed.');
             }
@@ -285,7 +285,8 @@ export class JupyterSessionManager implements IJupyterSessionManager {
             init: requestInit,
             WebSocket: createJupyterWebSocket(
                 cookieString,
-                allowUnauthorized
+                allowUnauthorized,
+                connInfo.authorizationHeader
                 // tslint:disable-next-line:no-any
             ) as any,
             // Redefine fetch to our node-modules so it picks up the correct version.
