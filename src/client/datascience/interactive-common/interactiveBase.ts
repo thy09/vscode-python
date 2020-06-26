@@ -557,7 +557,7 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
         id?: string,
         data?: nbformat.ICodeCell | nbformat.IRawCell | nbformat.IMarkdownCell,
         debugInfo?: { runByLine: boolean; hashFileName?: string },
-        cancelToken?: CancellationToken
+        _cancelToken?: CancellationToken
     ): Promise<boolean> {
         traceInfo(`Submitting code for ${this.id}`);
         const stopWatch =
@@ -624,17 +624,17 @@ export abstract class InteractiveBase extends WebViewHost<IInteractiveWindowMapp
                     }
                 }
 
-                // If the file isn't unknown, set the active kernel's __file__ variable to point to that same file.
-                if (file !== Identifiers.EmptyFileName) {
-                    await this._notebook.execute(
-                        `__file__ = '${file.replace(/\\/g, '\\\\')}'`,
-                        file,
-                        line,
-                        uuid(),
-                        cancelToken,
-                        true
-                    );
-                }
+                // // If the file isn't unknown, set the active kernel's __file__ variable to point to that same file.
+                // if (file !== Identifiers.EmptyFileName) {
+                //     await this._notebook.execute(
+                //         `__file__ = '${file.replace(/\\/g, '\\\\')}'`,
+                //         file,
+                //         line,
+                //         uuid(),
+                //         cancelToken,
+                //         true
+                //     );
+                // }
                 if (stopWatch && !this.perceivedJupyterStartupTelemetryCaptured) {
                     this.perceivedJupyterStartupTelemetryCaptured = true;
                     sendTelemetryEvent(Telemetry.PerceivedJupyterStartupNotebook, stopWatch?.elapsedTime);
