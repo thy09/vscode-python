@@ -60,6 +60,7 @@ interface INativeCellBaseProps {
     useCustomEditorApi: boolean;
     runningByLine: DebugState;
     supportsRunByLine: boolean;
+    isNotebookTrusted: boolean;
 }
 
 type INativeCellProps = INativeCellBaseProps & typeof actionCreators;
@@ -151,6 +152,7 @@ export class NativeCell extends React.Component<INativeCellProps> {
         }
 
         // Content changes based on if a markdown cell or not.
+        // Make renderOutput() conditional on whether notebook is in trusted state
         const content =
             this.isMarkdownCell() && !this.isShowingMarkdownEditor() ? (
                 <div className="cell-result-container">
@@ -370,11 +372,11 @@ export class NativeCell extends React.Component<INativeCellProps> {
             case 'z':
             case 'Z':
                 if (!this.isFocused() && !this.props.useCustomEditorApi) {
-                    if (e.shiftKey && !e.ctrlKey && !e.altKey) {
+                    if (e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
                         e.stopPropagation();
                         this.props.redo();
                         this.props.sendCommand(NativeKeyboardCommandTelemetry.Redo);
-                    } else if (!e.shiftKey && !e.altKey && !e.ctrlKey) {
+                    } else if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
                         e.stopPropagation();
                         this.props.undo();
                         this.props.sendCommand(NativeKeyboardCommandTelemetry.Undo);

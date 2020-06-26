@@ -4,16 +4,21 @@
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { IExtensionSingleActivationService } from '../../activation/types';
-import { ICommandManager, IVSCodeNotebook } from '../../common/application/types';
+import {
+    IApplicationEnvironment,
+    IApplicationShell,
+    ICommandManager,
+    IVSCodeNotebook
+} from '../../common/application/types';
 import { NotebookEditorSupport } from '../../common/experiments/groups';
 import { IFileSystem } from '../../common/platform/types';
 import { IDisposableRegistry, IExperimentsManager, IExtensionContext } from '../../common/types';
 import { DataScience } from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { JupyterNotebookView } from './constants';
-import { NotebookContentProvider } from './contentProvider';
 import { NotebookKernel } from './notebookKernel';
 import { NotebookOutputRenderer } from './renderer';
+import { INotebookContentProvider } from './types';
 
 /**
  * This class basically registers the necessary providers and the like with VSC.
@@ -26,12 +31,14 @@ export class NotebookIntegration implements IExtensionSingleActivationService {
         @inject(IVSCodeNotebook) private readonly vscNotebook: IVSCodeNotebook,
         @inject(IExperimentsManager) private readonly experiment: IExperimentsManager,
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
-        @inject(NotebookContentProvider) private readonly notebookContentProvider: NotebookContentProvider,
+        @inject(INotebookContentProvider) private readonly notebookContentProvider: INotebookContentProvider,
         @inject(IExtensionContext) private readonly context: IExtensionContext,
         @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(ICommandManager) private readonly commandManager: ICommandManager,
         @inject(NotebookKernel) private readonly notebookKernel: NotebookKernel,
-        @inject(NotebookOutputRenderer) private readonly renderer: NotebookOutputRenderer
+        @inject(NotebookOutputRenderer) private readonly renderer: NotebookOutputRenderer,
+        @inject(IApplicationEnvironment) private readonly env: IApplicationEnvironment,
+        @inject(IApplicationShell) private readonly shell: IApplicationShell
     ) {}
     public get isEnabled() {
         const packageJsonFile = path.join(this.context.extensionPath, 'package.json');
@@ -91,6 +98,10 @@ export class NotebookIntegration implements IExtensionSingleActivationService {
         );
     }
     private async enableNotebooks(useVSCodeNotebookAsDefaultEditor: boolean) {
+        if (this.env.channel === 'stable') {
+            this.shell.showErrorMessage(DataScience.previewNotebookOnlySupportedInVSCInsiders()).then(noop, noop);
+            return;
+        }
         const packageJsonFile = path.join(this.context.extensionPath, 'package.json');
         const content = JSON.parse(this.fs.readFileSync(packageJsonFile));
 

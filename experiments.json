@@ -30,6 +30,30 @@
         "max": 20
     },
     {
+        "name": "DebugAdapterFactory - control",
+        "salt": "DebugAdapterFactory",
+        "min": 0,
+        "max": 0
+    },
+    {
+        "name": "DebugAdapterFactory - experiment",
+        "salt": "DebugAdapterFactory",
+        "min": 0,
+        "max": 100
+    },
+    {
+        "name": "PtvsdWheels37 - control",
+        "salt": "DebugAdapterFactory",
+        "min": 0,
+        "max": 0
+    },
+    {
+        "name": "PtvsdWheels37 - experiment",
+        "salt": "DebugAdapterFactory",
+        "min": 0,
+        "max": 100
+    },
+    {
         "name": "Reload - control",
         "salt": "DebugAdapterFactory",
         "min": 0,
@@ -80,13 +104,13 @@
     {
         "name": "LocalZMQKernel - experiment",
         "salt": "LocalZMQKernel",
-        "max": 0,
-        "min": 5
+        "min": 0,
+        "max": 25
     },
     {
         "name": "LocalZMQKernel - control",
         "salt": "LocalZMQKernel",
-        "min": 5,
+        "min": 25,
         "max": 100
     },
     {
@@ -129,12 +153,12 @@
         "name": "DeprecatePythonPath - experiment",
         "salt": "DeprecatePythonPath",
         "min": 0,
-        "max": 10
+        "max": 20
     },
     {
         "name": "DeprecatePythonPath - control",
         "salt": "DeprecatePythonPath",
-        "min": 90,
+        "min": 80,
         "max": 100
     },
     {

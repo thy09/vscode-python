@@ -6,10 +6,10 @@
 import { CellKind, ConfigurationTarget, Event, EventEmitter, Uri, WebviewPanel } from 'vscode';
 import type { NotebookDocument } from 'vscode-proposed';
 import { IApplicationShell, ICommandManager, IVSCodeNotebook } from '../../common/application/types';
+import { traceError } from '../../common/logger';
 import { IConfigurationService } from '../../common/types';
 import { DataScience } from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
-import { traceError } from '../../logging';
 import { sendTelemetryEvent } from '../../telemetry';
 import { Telemetry } from '../constants';
 import { JupyterKernelPromiseFailedError } from '../jupyter/kernels/jupyterKernelPromiseFailedError';
@@ -25,6 +25,7 @@ import { getDefaultCodeLanguage } from './helpers/helpers';
 import { INotebookExecutionService } from './types';
 
 export class NotebookEditor implements INotebookEditor {
+    public readonly type = 'native';
     public get onDidChangeViewState(): Event<void> {
         return this.changedViewState.event;
     }
